@@ -294,7 +294,7 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
                                    const planning_interface::MotionPlanRequest& req,
                                    planning_interface::MotionPlanResponse& res, double sampling_time)
 {
-  RCLCPP_INFO_STREAM(LOGGER, "Generating " << req.planner_id << " trajectory...");
+  RCLCPP_DEBUG_STREAM(LOGGER, "Generating " << req.planner_id << " trajectory...");
   rclcpp::Time planning_begin = clock_->now();
 
   try
