@@ -99,16 +99,23 @@ public:
     return name_;
   }
 
-  /** \brief Get the planning scene associated to this planning context */
+  /** \brief Get the planning scene associated with this planning context */
   const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
   {
     return planning_scene_;
   }
 
-  /** \brief Get the motion plan request associated to this planning context */
+  /** \brief Get the motion plan request associated with this planning context */
   const MotionPlanRequest& getMotionPlanRequest() const
   {
     return request_;
+  }
+
+  /** \brief Get the planning scene associated with this planning context,
+   * with the planning request applied */
+  planning_scene::PlanningScenePtr getPlanningSceneDiff() const
+  {
+    return planning_scene_diff_;
   }
 
   /** \brief Set the planning scene for this context */
@@ -144,6 +151,12 @@ protected:
 
   /// The planning request for this context
   MotionPlanRequest request_;
+
+  /// The planning scene with the planning request applied
+  planning_scene::PlanningScenePtr planning_scene_diff_;
+
+private:
+  void generatePlanningSceneDiff();
 };
 
 MOVEIT_CLASS_FORWARD(PlannerManager);  // Defines PlannerManagerPtr, ConstPtr, WeakPtr... etc

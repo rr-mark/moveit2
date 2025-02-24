@@ -111,6 +111,9 @@ public:
   bool generate(const planning_scene::PlanningSceneConstPtr& scene, const planning_interface::MotionPlanRequest& req,
                 planning_interface::MotionPlanResponse& res, double sampling_time = 0.1);
 
+  bool generate(planning_scene::PlanningScenePtr scene, const planning_interface::MotionPlanRequest& req,
+                planning_interface::MotionPlanResponse& res, double sampling_time = 0.1);
+
 protected:
   /**
    * @brief This class is used to extract needed information from motion plan request.

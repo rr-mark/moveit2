@@ -294,6 +294,18 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
                                    const planning_interface::MotionPlanRequest& req,
                                    planning_interface::MotionPlanResponse& res, double sampling_time)
 {
+  auto start_scene = scene->diff();
+  auto& start_state = start_scene->getCurrentStateNonConst();
+  // update start state from req
+  moveit::core::robotStateMsgToRobotState(start_scene->getTransforms(), req.start_state, start_state);
+  start_state.update();
+  return generate(start_scene, req, res, sampling_time);
+}
+
+bool TrajectoryGenerator::generate(planning_scene::PlanningScenePtr scene,
+                                   const planning_interface::MotionPlanRequest& req,
+                                   planning_interface::MotionPlanResponse& res, double sampling_time)
+{
   RCLCPP_DEBUG_STREAM(LOGGER, "Generating " << req.planner_id << " trajectory...");
   rclcpp::Time planning_begin = clock_->now();
 
@@ -324,7 +336,7 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
   MotionPlanInfo plan_info(scene, req);
   try
   {
-    extractMotionPlanInfo(scene, req, plan_info);
+    extractMotionPlanInfo(plan_info.start_scene, req, plan_info);
   }
   catch (const MoveItErrorCodeException& ex)
   {
@@ -354,12 +366,8 @@ bool TrajectoryGenerator::generate(const planning_scene::PlanningSceneConstPtr& 
 TrajectoryGenerator::MotionPlanInfo::MotionPlanInfo(const planning_scene::PlanningSceneConstPtr& scene,
                                                     const planning_interface::MotionPlanRequest& req)
 {
-  auto ps = scene->diff();
-  auto& start_state = ps->getCurrentStateNonConst();
-  // update start state from req
-  moveit::core::robotStateMsgToRobotState(scene->getTransforms(), req.start_state, start_state);
-  start_state.update();
-  start_scene = std::move(ps);
+  start_scene = scene;
+  auto& start_state = scene->getCurrentState();
 
   // initialize info.start_joint_position with active joint values from start_state
   const double* positions = start_state.getVariablePositions();

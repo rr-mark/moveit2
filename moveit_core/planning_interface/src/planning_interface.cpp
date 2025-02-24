@@ -35,9 +35,11 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
 #include <mutex>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
+#include <moveit/robot_state/conversions.h>
 #include <set>
 
 namespace planning_interface
@@ -77,6 +79,7 @@ PlanningContext::~PlanningContext()
 void PlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
 {
   planning_scene_ = planning_scene;
+  generatePlanningSceneDiff();
 }
 
 void PlanningContext::setMotionPlanRequest(const MotionPlanRequest& request)
@@ -92,6 +95,26 @@ void PlanningContext::setMotionPlanRequest(const MotionPlanRequest& request)
     RCLCPP_ERROR(LOGGER, "The number of desired planning attempts should be positive. "
                          "Assuming one attempt.");
   request_.num_planning_attempts = std::max(1, request_.num_planning_attempts);
+  generatePlanningSceneDiff();
+}
+
+void PlanningContext::generatePlanningSceneDiff()
+{
+  if (!planning_scene_)
+  {
+    return;
+  }
+  if (request_.num_planning_attempts == 0)
+  {
+    return;
+  }
+  if (!planning_scene_diff_)
+  {
+    planning_scene_diff_ = planning_scene_->diff();
+  }
+  auto& state = planning_scene_diff_->getCurrentStateNonConst();
+  moveit::core::robotStateMsgToRobotState(planning_scene_->getTransforms(), request_.start_state, state);
+  state.update();
 }
 
 bool PlannerManager::initialize(const moveit::core::RobotModelConstPtr& /*unused*/,
